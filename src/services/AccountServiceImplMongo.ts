@@ -48,8 +48,8 @@ export class AccountServiceImplMongo implements AccountService {
         const emp = await EmployeeModel.findById(saved._id).lean<Employee>();
         if (!emp) throw new HttpError(500, "Failed to create employee");
         await auditLog({
-            actorId: 'system',
-            actorRoles: [],
+            actorId: actorId,
+            actorRoles: actorRoles,
             action: 'HIRE',
             targetId: employee._id,
             status: 'SUCCESS'
@@ -64,8 +64,8 @@ export class AccountServiceImplMongo implements AccountService {
         const firedDoc = new FiredEmployeeModel(deletedDoc.toObject());
         const savedFired = await firedDoc.save();
         await auditLog({
-            actorId: "req.empId",
-            actorRoles: ['roles'],
+            actorId: actorId,
+            actorRoles: actorRoles,
             action: 'FIRE',
             targetId: id,
             status: 'SUCCESS'
@@ -85,8 +85,8 @@ export class AccountServiceImplMongo implements AccountService {
         editEmployeePassword.passHash = newPassHash;
         await editEmployeePassword.save()
         await auditLog({
-            actorId: "req.empId",
-            actorRoles: ['roles'],
+            actorId: actorId,
+            actorRoles: actorRoles,
             action: 'change password',
             targetId: empId,
             status: 'SUCCESS'
@@ -114,8 +114,8 @@ export class AccountServiceImplMongo implements AccountService {
             }).lean<Employee>();
         if (!editEmployeeRole) throw new HttpError(404, "Role with id ${id} not found");
         await auditLog({
-            actorId: "req.empId",
-            actorRoles: ['roles'],
+            actorId: actorId,
+            actorRoles: actorRoles,
             action: 'set role',
             targetId: id,
             status: 'SUCCESS'
@@ -133,8 +133,8 @@ export class AccountServiceImplMongo implements AccountService {
         if (!editEmployee) throw new HttpError(404, `Employee with id ${empId} not found`);
         const res = await EmployeeModel.findById(empId).lean<Employee>();
         await auditLog({
-            actorId: "req.empId",
-            actorRoles: ['roles'],
+            actorId: actorId,
+            actorRoles: actorRoles,
             action: `update  employee's data`,
             targetId: empId,
             status: 'SUCCESS'

@@ -151,3 +151,5 @@
 ::1 - 111111111 [04/Sep/2025:13:21:26 +0000] "POST /crew/hireEmployee HTTP/1.1" 200 236 "-" "PostmanRuntime/7.45.0"
 ::1 - 111111111 [04/Sep/2025:13:27:50 +0000] "POST /crew/hireEmployee HTTP/1.1" 409 23 "-" "PostmanRuntime/7.45.0"
 ::1 - 111111111 [04/Sep/2025:13:27:57 +0000] "POST /crew/hireEmployee HTTP/1.1" 200 236 "-" "PostmanRuntime/7.45.0"
+::1 - 111111111 [04/Sep/2025:15:30:05 +0000] "POST /crew/hireEmployee HTTP/1.1" 200 236 "-" "PostmanRuntime/7.45.0"
+::1 - 111111113 [04/Sep/2025:15:30:17 +0000] "DELETE /crew/fireEmployee?id=111111119 HTTP/1.1" 401 15 "-" "PostmanRuntime/7.45.0"
