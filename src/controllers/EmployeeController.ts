@@ -5,12 +5,15 @@ import {
 import {convertEmployeeDtoToEmployee} from "../utils/tools.js";
 import {HttpError} from "../errorHandler/HttpError.js";
 import {Employee, EmployeeDto} from "../model/Employee.js";
+import {AuthRequest} from "../utils/appTypes.js";
 
 
-export const hireEmployee = async (req: Request, res: Response) => {
+export const hireEmployee = async (req: AuthRequest, res: Response) => {
     const body = req.body;
+    const actorId = req.empId;
+    const actorRoles = req.roles;
     const employee = await convertEmployeeDtoToEmployee(body as EmployeeDto)
-    const result = await service.hireEmployee(employee as Employee);
+    const result = await service.hireEmployee(employee as Employee, actorId!, actorRoles);
     res.json(result)
 }
 
@@ -54,11 +57,13 @@ export const updateEmployee = async (req: Request, res: Response) => {
 
 }
 
-export const setRole = async (req: Request, res: Response) => {
+export const setRole = async (req: AuthRequest, res: Response) => {
     const {id, newRole} = req.body;
+    const actorId = req.empId;
+const actorRoles = req.roles;
     if (!id)
         throw new HttpError(400, "Data invalid");
-    const result = await service.setRole(id, newRole);
+    const result = await service.setRole(id, newRole, actorId, actorRoles);
     res.json(result)
 
 }

@@ -5,22 +5,54 @@ import {
 } from "../model/EmployeeMongooseModel.js";
 import {HttpError} from "../errorHandler/HttpError.js";
 import bcrypt from "bcryptjs";
-import {Employee, EmployeeDataPatch, SavedFiredEmployee} from "../model/Employee.js";
+import {
+    Employee,
+    EmployeeDataPatch,
+    SavedFiredEmployee
+} from "../model/Employee.js";
+import {auditLog} from "../model/Audit.js";
 
 
 export class AccountServiceImplMongo implements AccountService {
 
-    async hireEmployee(employee: Employee): Promise<Employee> {
+    async hireEmployee(employee: Employee, actorId:string, actorRoles: []): Promise<Employee> {
         const exist = await EmployeeModel.findById(employee._id).lean<Employee>();
-        if (exist) throw new HttpError(409, "Employee already exists")
+        if (exist) {
+            await auditLog({
+                actorId: actorId,
+                actorRoles: actorRoles,
+                action: 'HIRE',
+                targetId: employee._id,
+                status: 'DENIED',
+                textError: "Employee already exists"
+            });
+            throw new HttpError(409, "Employee already exists")
+        }
         const firedBefore = await FiredEmployeeModel.findById(employee._id).lean<SavedFiredEmployee>();
-        if (firedBefore) throw new HttpError(409, "Employee was fired before")
+        if (firedBefore) {
+            await auditLog({
+                actorId: actorId,
+                actorRoles: actorRoles,
+                action: 'HIRE',
+                targetId: employee._id,
+                status: 'DENIED',
+                textError: "Employee was fired before"
+            })
+            throw new HttpError(409, "Employee was fired before")
+        }
+
 
         const saved = await new EmployeeModel(employee).save();
 
         const emp = await EmployeeModel.findById(saved._id).lean<Employee>();
         if (!emp) throw new HttpError(500, "Failed to create employee");
-
+        await auditLog({
+            actorId: 'system',
+            actorRoles: [],
+            action: 'HIRE',
+            targetId: employee._id,
+            status: 'SUCCESS'
+        })
         return emp;
     }
 
@@ -30,6 +62,13 @@ export class AccountServiceImplMongo implements AccountService {
 
         const firedDoc = new FiredEmployeeModel(deletedDoc.toObject());
         const savedFired = await firedDoc.save();
+        await auditLog({
+            actorId: "req.empId",
+            actorRoles: ['roles'],
+            action: 'FIRE',
+            targetId: id,
+            status: 'SUCCESS'
+        })
         return savedFired as SavedFiredEmployee;
     }
 
@@ -44,6 +83,13 @@ export class AccountServiceImplMongo implements AccountService {
         const newPassHash = await bcrypt.hash(newPassword, 10);
         editEmployeePassword.passHash = newPassHash;
         await editEmployeePassword.save()
+        await auditLog({
+            actorId: 'system',
+            actorRoles: [],
+            action: 'Change Password',
+            targetId: empId,
+            status: 'SUCCESS'
+        })
     }
 
     async getAllEmployees(): Promise<Employee[]> {
@@ -66,6 +112,13 @@ export class AccountServiceImplMongo implements AccountService {
                 $addToSet: {roles: newRole},
             }).lean<Employee>();
         if (!editEmployeeRole) throw new HttpError(404, "Role with id ${id} not found");
+        await auditLog({
+            actorId: 'system',
+            actorRoles: [],
+            action: 'Set Role',
+            targetId: id,
+            status: 'SUCCESS'
+        })
         return editEmployeeRole;
     }
 
@@ -78,6 +131,13 @@ export class AccountServiceImplMongo implements AccountService {
             }).lean<Employee>();
         if (!editEmployee) throw new HttpError(404, `Employee with id ${empId} not found`);
         const res = await EmployeeModel.findById(empId).lean<Employee>();
+        await auditLog({
+            actorId: 'system',
+            actorRoles: [],
+            action: `update  employee's data`,
+            targetId: empId,
+            status: 'SUCCESS',
+        })
         return res as Employee;
     }
 
