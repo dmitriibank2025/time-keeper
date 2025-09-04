@@ -1,0 +1,301 @@
+{
+	"info": {
+		"_postman_id": "1cb47e30-bca9-4c31-9bc9-80c2f5438cdc",
+		"name": "TimeKeeper API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "46116381",
+		"_collection_link": "https://dmitriibank-9234856.postman.co/workspace/Java-27-30~f9f92cbe-3c8e-41d3-aea3-ebeb5c4e7ca8/collection/46116381-1cb47e30-bca9-4c31-9bc9-80c2f5438cdc?action=share&source=collection_link&creator=46116381"
+	},
+	"item": [
+		{
+			"name": "Employee API",
+			"item": [
+				{
+					"name": "hireEmployee",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "12345678",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "111111113",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": 111111115,\n    \"password\": \"12345678\",\n    \"firstName\": \"Jon4\",\n    \"lastName\": \"Doe4\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3555/crew/hireEmployee",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3555",
+							"path": [
+								"crew",
+								"hireEmployee"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "fireEmployee",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "12345678",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "111111113",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3555/crew/fireEmployee?id=111111113",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3555",
+							"path": [
+								"crew",
+								"fireEmployee"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "111111113"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getEmployeeById",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "111111111",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "12345678",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3555/crew/employee?id=111111111",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3555",
+							"path": [
+								"crew",
+								"employee"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "111111111"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "changePassword",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n     \"empId\": \"111111113\",\n     \"newPassword\": \"12345678\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3555/crew/password",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3555",
+							"path": [
+								"crew",
+								"password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateEmployee",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "111111114",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "12345678",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"empId\": \"111111114\",\n  \"employee\": {\n    \"firstName\": \"Jon6\",\n    \"lastName\": \"Doe6\"\n  }\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3555/crew/updateEmployee",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3555",
+							"path": [
+								"crew",
+								"updateEmployee"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "setRole",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "123456789.com",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "1000000",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n     \"id\": 111111111,\n     \"newRole\": \"hr\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3555/crew/setRole",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3555",
+							"path": [
+								"crew",
+								"setRole"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getAllEmployees",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "111111111",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "12345678",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3555/crew/employees",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3555",
+							"path": [
+								"crew",
+								"employees"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

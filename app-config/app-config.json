@@ -1,0 +1,18 @@
+{
+  "port": 3555,
+  "skipRoutes" : [
+    "POST/crew"
+  ],
+  "pathRoles": {
+    "POST/crew/hireEmployee":["hr"],
+    "DELETE/crew/fireEmployee":["hr"],
+    "GET/crew/employee":["manager", "hr"],
+    "GET/crew/employees":["manager", "hr"],
+    "PATCH/crew/updateEmployee":["manager", "hr"],
+    "PATCH/crew/crew/password":["manager", "hr"],
+    "PATCH/crew/setRole":["supervisor"]
+  },
+  "checkIdRoutes": [
+
+  ]
+}
