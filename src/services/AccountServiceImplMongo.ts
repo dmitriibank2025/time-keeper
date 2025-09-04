@@ -11,11 +11,12 @@ import {
     SavedFiredEmployee
 } from "../model/Employee.js";
 import {auditLog} from "../model/Audit.js";
+import {Roles} from "../utils/appTypes.js";
 
 
 export class AccountServiceImplMongo implements AccountService {
 
-    async hireEmployee(employee: Employee, actorId:string, actorRoles: []): Promise<Employee> {
+    async hireEmployee(employee: Employee, actorId:string, actorRoles: Roles[]): Promise<Employee> {
         const exist = await EmployeeModel.findById(employee._id).lean<Employee>();
         if (exist) {
             await auditLog({
@@ -56,7 +57,7 @@ export class AccountServiceImplMongo implements AccountService {
         return emp;
     }
 
-    async fireEmployee(id: string): Promise<SavedFiredEmployee> {
+    async fireEmployee(id: string, actorId:string, actorRoles: Roles[]): Promise<SavedFiredEmployee> {
         const deletedDoc = await EmployeeModel.findByIdAndDelete(id);
         if (!deletedDoc) throw new HttpError(404, `Employee with id ${id} not found`);
 
@@ -73,7 +74,7 @@ export class AccountServiceImplMongo implements AccountService {
     }
 
 
-    async changePassword(empId: string, newPassword: string): Promise<void> {
+    async changePassword(empId: string, newPassword: string, actorId:string, actorRoles: Roles[]): Promise<void> {
         const editEmployeePassword = await EmployeeModel.findById(empId);
         if (!editEmployeePassword) throw new HttpError(409, `Employee with id ${empId} not found`)
         const isSame = await bcrypt.compare(newPassword, editEmployeePassword.passHash);
@@ -84,9 +85,9 @@ export class AccountServiceImplMongo implements AccountService {
         editEmployeePassword.passHash = newPassHash;
         await editEmployeePassword.save()
         await auditLog({
-            actorId: 'system',
-            actorRoles: [],
-            action: 'Change Password',
+            actorId: "req.empId",
+            actorRoles: ['roles'],
+            action: 'change password',
             targetId: empId,
             status: 'SUCCESS'
         })
@@ -104,7 +105,7 @@ export class AccountServiceImplMongo implements AccountService {
     }
 
 
-    async setRole(id: string, newRole: string): Promise<Employee> {
+    async setRole(id: string, newRole: string, actorId:string, actorRoles: Roles[]): Promise<Employee> {
         console.log(newRole);
         const editEmployeeRole = await EmployeeModel.findByIdAndUpdate(
             id,
@@ -113,16 +114,16 @@ export class AccountServiceImplMongo implements AccountService {
             }).lean<Employee>();
         if (!editEmployeeRole) throw new HttpError(404, "Role with id ${id} not found");
         await auditLog({
-            actorId: 'system',
-            actorRoles: [],
-            action: 'Set Role',
+            actorId: "req.empId",
+            actorRoles: ['roles'],
+            action: 'set role',
             targetId: id,
             status: 'SUCCESS'
         })
         return editEmployeeRole;
     }
 
-    async updateEmployee(empId: string, employee: EmployeeDataPatch): Promise<Employee> {
+    async updateEmployee(empId: string, employee: EmployeeDataPatch, actorId:string, actorRoles: Roles[]): Promise<Employee> {
         const newEmpName = `${employee.firstName} ${employee.lastName}`;
         const editEmployee = await EmployeeModel.findByIdAndUpdate(
             empId,
@@ -132,11 +133,11 @@ export class AccountServiceImplMongo implements AccountService {
         if (!editEmployee) throw new HttpError(404, `Employee with id ${empId} not found`);
         const res = await EmployeeModel.findById(empId).lean<Employee>();
         await auditLog({
-            actorId: 'system',
-            actorRoles: [],
+            actorId: "req.empId",
+            actorRoles: ['roles'],
             action: `update  employee's data`,
             targetId: empId,
-            status: 'SUCCESS',
+            status: 'SUCCESS'
         })
         return res as Employee;
     }
