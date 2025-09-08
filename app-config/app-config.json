@@ -1,7 +1,7 @@
 {
   "port": 3555,
   "skipRoutes" : [
-    "POST/crew"
+    "POST/crew", "POST/work"
   ],
   "pathRoles": {
     "POST/crew/hireEmployee":["hr"],
@@ -10,7 +10,12 @@
     "GET/crew/employees":["manager", "hr"],
     "PATCH/crew/updateEmployee":["manager", "hr"],
     "PATCH/crew/crew/password":["manager", "hr"],
-    "PATCH/crew/setRole":["supervisor"]
+    "PATCH/crew/setRole":["supervisor"],
+    "POST/work/start":["crew", "manager"],
+    "PATCH/work/finish":["crew", "manager"],
+    "PATCH/work/break":["crew", "manager"],
+    "PATCH/work/correct":["manager", "hr"],
+    "GET/work/":["manager", "hr"]
   },
   "checkIdRoutes": [
 

@@ -12,6 +12,7 @@ export type Employee = {
     _id: string,
     empName: string,
     passHash: string,
+    table_num: string,
     roles: Roles[],
     workTimeList: WorkTimeRecord[]
 }
@@ -22,13 +23,25 @@ export type EmployeeDataPatch = {
 };
 
 export type WorkTimeRecord = {
-    id: string,
-    login_time: string,
-    logout_time: string | null
+    shift_id: string,
+    startShift: string,
+    finishShift: string | null,
+    // table_num: string,
+    shiftDuration: number,
+    breaks: number,
+    correct: string | null,
+    monthHours: number
 }
-
 
 export type SavedFiredEmployee = {
     _id: string,
     empName: string,
+    table_num: string,
+    fireDate?: string
+}
+
+export type CurrentCrewShift = {
+    _id: string,
+    empName: string,
+    table_num: string,
 }

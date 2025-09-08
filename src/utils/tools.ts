@@ -1,8 +1,13 @@
 import {EmployeeDto} from "../model/Employee.js";
 import bcrypt from 'bcryptjs'
+import {v4 as uuidv4} from 'uuid';
 import {Roles} from "./appTypes.js";
 import jwt from "jsonwebtoken";
 import {configuration} from "../config/appConfig.js";
+
+function generateNumber() {
+    return uuidv4();
+}
 
 export const convertEmployeeDtoToEmployee = async (dto: EmployeeDto) => {
     const hashedPassword = await bcrypt.hash(dto.password, 10)
@@ -12,6 +17,7 @@ export const convertEmployeeDtoToEmployee = async (dto: EmployeeDto) => {
         empName: userName,
         passHash: hashedPassword,
         roles: [Roles.CREW],
+        table_num: generateNumber(),
         workTimeList: []
     }
 }

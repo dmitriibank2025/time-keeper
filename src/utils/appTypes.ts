@@ -3,7 +3,8 @@ import e from "express";
 export interface AuthRequest extends e.Request{
     empId?: string,
     empName?: string,
-    roles?: Roles[]
+    roles?: Roles[],
+    tab_num?: string,
 }
 
 export enum Roles {

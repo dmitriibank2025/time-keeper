@@ -10,6 +10,7 @@ import {authorize} from "./middleware/authorization.js";
 import {Roles} from "./utils/appTypes.js";
 import {authentication, skipRoutes} from "./middleware/authentication.js";
 import {accountServiceImplMongo} from "./services/AccountServiceImplMongo.js";
+import {workTimeRouter} from "./routes/workTimeRouter.js";
 
 export const launchServer = () => {
     dotenv.config();
@@ -27,6 +28,7 @@ export const launchServer = () => {
 
     //===============Router================
     app.use('/crew', empRouter)
+    app.use('/work', workTimeRouter)
     app.get('/', (_, res) => res.send('API is running'));
 
 
