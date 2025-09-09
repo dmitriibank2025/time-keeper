@@ -296,6 +296,186 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "WorkTime API",
+			"item": [
+				{
+					"name": "getCurrentShiftStaff",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "12345678",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "111111111",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3555/work/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3555",
+							"path": [
+								"work",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "startShift",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "111111113",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "12345678",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"tab_n\": \"e0e62ecc-d0ea-4c29-a32a-3c74a6da6e20\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3555/work/start",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3555",
+							"path": [
+								"work",
+								"start"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "finishShift",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "111111113",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "12345678",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"tab_n\": \"e0e62ecc-d0ea-4c29-a32a-3c74a6da6e20\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3555/work/finish",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3555",
+							"path": [
+								"work",
+								"finish"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "correctShift",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "makeBreak",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "111111111",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "12345678",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"tab_n\": \"7c1e7e6c-1013-4fa7-b0e8-68e68f37db80\", \"minutes\": 15}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3555/work/break",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3555",
+							"path": [
+								"work",
+								"break"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }
