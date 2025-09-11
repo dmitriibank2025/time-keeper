@@ -423,3 +423,7 @@
 ::1 - 111111111 [07/Sep/2025:22:40:00 +0000] "GET /crew/employees HTTP/1.1" 200 2643 "-" "PostmanRuntime/7.45.0"
 ::1 - 111111113 [07/Sep/2025:22:40:20 +0000] "PATCH /work/finish HTTP/1.1" 200 84 "-" "PostmanRuntime/7.45.0"
 ::1 - 111111111 [07/Sep/2025:22:40:24 +0000] "GET /crew/employees HTTP/1.1" 200 2684 "-" "PostmanRuntime/7.45.0"
+::1 - 111111113 [09/Sep/2025:16:20:46 +0000] "POST /work/start HTTP/1.1" 200 84 "-" "PostmanRuntime/7.46.0"
+::1 - 111111113 [09/Sep/2025:16:20:48 +0000] "POST /work/start HTTP/1.1" 400 554 "-" "PostmanRuntime/7.46.0"
+::1 - 111111113 [09/Sep/2025:16:21:39 +0000] "POST /work/start HTTP/1.1" 400 554 "-" "PostmanRuntime/7.46.0"
+::1 - 111111113 [09/Sep/2025:16:21:42 +0000] "POST /work/start HTTP/1.1" 400 554 "-" "PostmanRuntime/7.46.0"

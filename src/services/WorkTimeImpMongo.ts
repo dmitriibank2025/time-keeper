@@ -1,7 +1,9 @@
 import {WorkTimeService} from "./workTimeService.js";
 import {CurrentCrewShift} from "../model/Employee.js";
-import {EmployeeModel} from "../model/EmployeeMongooseModel.js";
+import {EmployeeModel, ShiftModel} from "../model/EmployeeMongooseModel.js";
 import {HttpError} from "../errorHandler/HttpError.js";
+import {logger} from "../Logger/winston.js";
+import {archiveShifts} from "./archiveService.js";
 
 
 export class WorkTimeImpMongo implements WorkTimeService {
@@ -13,10 +15,16 @@ export class WorkTimeImpMongo implements WorkTimeService {
 
         const emp = await EmployeeModel.findOne({table_num: tab_n});
 
-        if (!emp) throw new HttpError(404, `Employee with id ${tab_n} not found`);
+        if (!emp) {
+            logger.error(`${new Date().toISOString()} => Employee with tab_n ${tab_n} not found`);
+            throw new HttpError(404, `Employee with tab_n ${tab_n} not found`);
+        }
 
         const shift = emp.workTimeList.find(w => w.shift_id === currentDate && !w.finishShift);
-        if (!shift) throw new HttpError(400, "Shift not found.");
+        if (!shift) {
+            logger.error(`${new Date().toISOString()} => Shift not found`);
+            throw new HttpError(404, "Shift not found.");
+        }
 
         const start = new Date(shift.startShift).getTime();
 
@@ -43,12 +51,21 @@ export class WorkTimeImpMongo implements WorkTimeService {
         const today = new Date().toISOString().split("T")[0];
 
         const emp = await EmployeeModel.findOne({table_num: tab_n_crew});
-        if (!emp) throw new HttpError(404, `Employee with table number ${tab_n_crew} not found`);
+        if (!emp) {
+            logger.error(`${new Date().toISOString()} => Employee with table number ${tab_n_crew} not found`);
+            throw new HttpError(404, `Employee with table number ${tab_n_crew} not found`);
+        }
 
         const shift = emp.workTimeList.find(w => w.shift_id === today);
-        if (!shift) throw new HttpError(400, "Shift not found");
+        if (!shift) {
+            logger.error(`${new Date().toISOString()} => Shift not found`);
+            throw new HttpError(404, "Shift not found");
+        }
 
-        if (!start && !finish) throw new HttpError(400, "Nothing to update");
+        if (!start && !finish) {
+            logger.error(`${new Date().toISOString()} => Nothing to update`);
+            throw new HttpError(400, "Nothing to update");
+        }
 
         const nextStart = start ? new Date(start).getTime() : 0;
         const nextFinish = finish ? new Date(finish).getTime() : 0;
@@ -66,12 +83,15 @@ export class WorkTimeImpMongo implements WorkTimeService {
         if (start && finish && (nextFinish <= nextStart)) {
             throw new HttpError(400, "Finish must be later than start");
         }
+        if (finish && (nextFinish >= curFinish)) {
+            throw new HttpError(400, "Finish must be earlier than existing finish");
+        }
 
         if (start) shift.startShift = start;
         if (finish) shift.finishShift = finish;
 
 
-        shift.shiftDuration = Math.round((new Date(shift.finishShift).getTime() - new Date(shift.startShift).getTime()) / (1000 * 60*60));
+        shift.shiftDuration = Math.round((new Date(shift.finishShift).getTime() - new Date(shift.startShift).getTime()) / (1000 * 60 * 60));
 
 
         shift.correct = tab_n_mng;
@@ -80,6 +100,7 @@ export class WorkTimeImpMongo implements WorkTimeService {
             await emp.save();
         } catch (e) {
             console.error("Save error", e);
+            logger.error(`${new Date().toISOString()} => Failed to save shift correction`);
             throw new HttpError(500, "Failed to save shift correction");
         }
     }
@@ -92,17 +113,24 @@ export class WorkTimeImpMongo implements WorkTimeService {
 
         const currentDate = new Date().toISOString().split('T')[0];
         const emp = await EmployeeModel.findOne({table_num: tab_n});
-        if (!emp) throw new HttpError(404, `Employee with id ${tab_n} not found`);
+        if (!emp) {
+            logger.error(`${new Date().toISOString()} => Employee with table number ${tab_n} not found`);
+            throw new HttpError(404, `Employee with table number ${tab_n} not found`);
+        }
+
 
         const shift = emp.workTimeList.find(w => w.shift_id === currentDate && !w.finishShift);
-        if (!shift) throw new HttpError(400, "Shift not found.");
+        if (!shift) {
+            logger.error(`${new Date().toISOString()} => Shift not found`);
+            throw new HttpError(404, "Shift not found.");
+        }
 
         const start = new Date(shift.startShift).getTime();
         const finish = Date.now();
         const currentTime = new Date().toISOString()
         shift.finishShift = currentTime;
 
-        const durationHours = (finish - start) / (1000 * 60*60);
+        const durationHours = (finish - start) / (1000 * 60 * 60);
         shift.shiftDuration = durationHours
         let autoBreak = 0;
 
@@ -134,7 +162,10 @@ export class WorkTimeImpMongo implements WorkTimeService {
                 $sort: {_id: -1}
             }
         ]);
-        if (!res.length) throw new HttpError(404, `Nobody work now`);
+        if (!res.length) {
+            logger.error(`${new Date().toISOString()} => Nobody work now`);
+            throw new HttpError(404, `Nobody work now`);
+        }
         return {shift: res as CurrentCrewShift[]};
     }
 
@@ -145,29 +176,46 @@ export class WorkTimeImpMongo implements WorkTimeService {
 
         const currentDate = new Date().toISOString().split('T')[0];
         const currentTime = Date.now();
+        const start = new Date(currentTime).toISOString()
+
+        const now = new Date();
+        const twoLastMonthes = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
         const emp = await EmployeeModel.findOne({table_num: tab_n});
-        if (!emp) throw new HttpError(404, `Employee with id ${tab_n} not found`);
+        if (!emp) {
+            logger.error(`${new Date().toISOString()} => Employee with table number ${tab_n} not found`);
+            throw new HttpError(404, `Employee with table number ${tab_n} not found`);
+        }
+
+        const toArchive = (emp.workTimeList ?? []).filter((w: any) => new Date(w.shift_id) < twoLastMonthes);
+        if (toArchive.length) {
+            try {
+                await archiveShifts(tab_n, toArchive);
+                logger.info(`${new Date().toISOString()} => Archived ${toArchive.length} shifts for employee ${tab_n}`);
+            } catch (error) {
+                logger.error(`${new Date().toISOString()} => Failed to archive shifts for employee ${tab_n}: ${error}`);
+                throw new HttpError(500, "Failed to archive old shifts");
+            }
+        }
 
         const openShift = emp.workTimeList.find(
             (w) => w.shift_id === currentDate && w.finishShift === null
         );
         if (openShift) {
-            throw new HttpError(400, "Shift already started and not finished yet");
+            logger.error(`${start} => Shift already started and not finished yet`)
+            throw new HttpError(409, "Shift already started and not finished yet");
         }
 
         if (emp.workTimeList.length > 0) {
             const lastShift = emp.workTimeList[emp.workTimeList.length - 1];
-            const finish = new Date(lastShift.finishShift).getTime();
-            if (finish) {
-                const diffHours = (currentTime - finish) / (1000 * 60*60);
+            if (lastShift) {
+                const finish = new Date(lastShift.finishShift).getTime();
+                const diffHours = (currentTime - finish) / (1000 * 60 * 60);
                 if (diffHours < 8) {
                     throw new HttpError(403, "Shift work prohibited: 8 hours of rest have not passed");
                 }
             }
         }
-
-        const start = new Date(currentTime).toISOString()
 
         const newShift = {
             shift_id: currentDate,
@@ -184,8 +232,14 @@ export class WorkTimeImpMongo implements WorkTimeService {
             {table_num: tab_n},
             {
                 $push: {workTimeList: newShift},
-            })
-        if (!res) throw new HttpError(404, `Employee with table_num ${tab_n} not found`);
+                $pull: {workTimeList: {shift_id: {$lt: twoLastMonthes.toISOString().split('T')[0]}}}
+            },
+            {new: true}
+        )
+        if (!res) {
+            logger.error(`${new Date().toISOString()} => Employee with table number ${tab_n} not found`);
+            throw new HttpError(404, `Employee with table number ${tab_n} not found`);
+        }
         return {
             tab_num: emp.table_num,
             time: start

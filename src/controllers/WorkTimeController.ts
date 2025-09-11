@@ -2,6 +2,7 @@ import {AuthRequest} from "../utils/appTypes.js";
 import {workTimeImpMongo as service} from "../services/WorkTimeImpMongo.js";
 import {HttpError} from "../errorHandler/HttpError.js";
 import { Request, Response } from 'express';
+import {logger} from "../Logger/winston.js";
 
 export const startShift = async (req: AuthRequest, res: Response) => {
     const {tab_n} = req.body;
@@ -21,11 +22,15 @@ export const breakTime = async (req: AuthRequest, res: Response) => {
 }
 export const correctShift = async (req: AuthRequest, res: Response) => {
     const {tab_n_crew, start, finish} = req.body;
-    if (!tab_n_crew)
+    if (!tab_n_crew) {
+        logger.error(`${new Date().toISOString()} => Data invalid`);
         throw new HttpError(400, "Data invalid");
+    }
     const tab_n_mng = req.empId;
-    if (!tab_n_mng)
+    if (!tab_n_mng) {
+        logger.error(`${new Date().toISOString()} => Manager's data invalid`);
         throw new HttpError(400, "Manager's data invalid");
+    }
     await service.correctShift(tab_n_crew, tab_n_mng, start, finish);
     res.status(200).json({ message: "Shift corrected" })
 }

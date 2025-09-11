@@ -12,11 +12,13 @@ import {
 } from "../model/Employee.js";
 import {auditLog} from "../model/Audit.js";
 import {Roles} from "../utils/appTypes.js";
+import {logger} from "../Logger/winston.js";
+import {archiveShifts} from "./archiveService.js";
 
 
 export class AccountServiceImplMongo implements AccountService {
 
-    async hireEmployee(employee: Employee, actorId:string, actorRoles: Roles[]): Promise<Employee> {
+    async hireEmployee(employee: Employee, actorId: string, actorRoles: Roles[]): Promise<Employee> {
         const exist = await EmployeeModel.findById(employee._id).lean<Employee>();
         if (exist) {
             await auditLog({
@@ -57,40 +59,68 @@ export class AccountServiceImplMongo implements AccountService {
         return emp;
     }
 
-    async fireEmployee(id: string, actorId:string, actorRoles: Roles[]): Promise<SavedFiredEmployee> {
+    async fireEmployee(id: string, actorId: string, actorRoles: Roles[]): Promise<SavedFiredEmployee> {
         const deletedDoc = await EmployeeModel.findByIdAndDelete(id);
-        if (!deletedDoc) throw new HttpError(404, `Employee with id ${id} not found`);
+        if (!deletedDoc) {
+            logger.error(`${new Date().toISOString()} => Employee with id ${id} not found`);
+            throw new HttpError(404, `Employee with id ${id} not found`);
+        }
+        try {
+            const {table_num, workTimeList} = deletedDoc
+            if (workTimeList) {
+                try {
+                    await archiveShifts(table_num, workTimeList);
+                    logger.info(`${new Date().toISOString()} => Archived ${workTimeList.length} shifts for employee ${table_num}`);
+                } catch (error) {
+                    logger.error(`${new Date().toISOString()} => Failed to archive shifts for employee ${table_num}: ${error}`);
+                    throw new HttpError(500, "Failed to archive old shifts");
+                }
+            }
 
-        const firedDoc = new FiredEmployeeModel(deletedDoc.toObject());
-        const savedFired = await firedDoc.save();
-        await auditLog({
-            actorId: actorId,
-            actorRoles: actorRoles,
-            action: 'FIRE',
-            targetId: id,
-            status: 'SUCCESS'
-        })
-        return savedFired as SavedFiredEmployee;
+            const firedDoc = new FiredEmployeeModel(deletedDoc.toObject());
+            const savedFired = await firedDoc.save();
+
+            await auditLog({
+                actorId: actorId,
+                actorRoles: actorRoles,
+                action: 'FIRE',
+                targetId: id,
+                status: 'SUCCESS'
+            })
+            return savedFired as SavedFiredEmployee;
+        } catch (e) {
+            logger.error(`${new Date().toISOString()} => DB error on fireEmployee (id=${id}): ${e}`);
+            throw new HttpError(500, "Failed to fire employee");
+        }
     }
 
 
-    async changePassword(empId: string, newPassword: string, actorId:string, actorRoles: Roles[]): Promise<void> {
+    async changePassword(empId: string, newPassword: string, actorId: string, actorRoles: Roles[]): Promise<void> {
         const editEmployeePassword = await EmployeeModel.findById(empId);
-        if (!editEmployeePassword) throw new HttpError(409, `Employee with id ${empId} not found`)
+        if (!editEmployeePassword) {
+            logger.error(`${new Date().toISOString()} => Employee with id ${empId} not found`);
+            throw new HttpError(409, `Employee with id ${empId} not found`)
+        }
         const isSame = await bcrypt.compare(newPassword, editEmployeePassword.passHash);
         if (isSame) {
+            logger.error(`${new Date().toISOString()} => New password equals old (id=${empId})`);
             throw new HttpError(400, "The new password must not be the same as the old one");
         }
-        const newPassHash = await bcrypt.hash(newPassword, 10);
-        editEmployeePassword.passHash = newPassHash;
-        await editEmployeePassword.save()
-        await auditLog({
-            actorId: actorId,
-            actorRoles: actorRoles,
-            action: 'change password',
-            targetId: empId,
-            status: 'SUCCESS'
-        })
+        try {
+            const newPassHash = await bcrypt.hash(newPassword, 10);
+            editEmployeePassword.passHash = newPassHash;
+            await editEmployeePassword.save()
+            await auditLog({
+                actorId: actorId,
+                actorRoles: actorRoles,
+                action: 'change password',
+                targetId: empId,
+                status: 'SUCCESS'
+            })
+        } catch (e) {
+            logger.error(`${new Date().toISOString()} => DB error on changePassword (id=${empId}): ${e}`);
+            throw new HttpError(500, "Failed to update password");
+        }
     }
 
     async getAllEmployees(): Promise<Employee[]> {
@@ -100,19 +130,25 @@ export class AccountServiceImplMongo implements AccountService {
 
     async getEmployeeById(id: string): Promise<Employee> {
         const res = await EmployeeModel.findById(id) as Employee;
-        if (!res) throw new HttpError(404, `Employee with id ${id} not found`);
+        if (!res) {
+            logger.error(`${new Date().toISOString()} => Employee with id ${id} not found`);
+            throw new HttpError(404, `Employee with id ${id} not found`);
+        }
         return res;
     }
 
 
-    async setRole(id: string, newRole: string, actorId:string, actorRoles: Roles[]): Promise<Employee> {
+    async setRole(id: string, newRole: string, actorId: string, actorRoles: Roles[]): Promise<Employee> {
         console.log(newRole);
         const editEmployeeRole = await EmployeeModel.findByIdAndUpdate(
             id,
             {
                 $addToSet: {roles: newRole},
             }).lean<Employee>();
-        if (!editEmployeeRole) throw new HttpError(404, "Role with id ${id} not found");
+        if (!editEmployeeRole) {
+            logger.error(`${new Date().toISOString()} => Role with id ${id} not found`);
+            throw new HttpError(404, `Role with id ${id} not found`);
+        }
         await auditLog({
             actorId: actorId,
             actorRoles: actorRoles,
@@ -123,14 +159,17 @@ export class AccountServiceImplMongo implements AccountService {
         return editEmployeeRole;
     }
 
-    async updateEmployee(empId: string, employee: EmployeeDataPatch, actorId:string, actorRoles: Roles[]): Promise<Employee> {
+    async updateEmployee(empId: string, employee: EmployeeDataPatch, actorId: string, actorRoles: Roles[]): Promise<Employee> {
         const newEmpName = `${employee.firstName} ${employee.lastName}`;
         const editEmployee = await EmployeeModel.findByIdAndUpdate(
             empId,
             {
                 $set: {empName: newEmpName},
             }).lean<Employee>();
-        if (!editEmployee) throw new HttpError(404, `Employee with id ${empId} not found`);
+        if (!editEmployee) {
+            logger.error(`${new Date().toISOString()} => Employee with id ${empId} not found`);
+            throw new HttpError(404, `Employee with id ${empId} not found`);
+        }
         const res = await EmployeeModel.findById(empId).lean<Employee>();
         await auditLog({
             actorId: actorId,

@@ -32,3 +32,16 @@ export const  firedMongooseSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 export const FiredEmployeeModel = mongoose.model('Fired', firedMongooseSchema, 'fired_collection')
+
+export const shiftSchema = new mongoose.Schema({
+    table_num: { type: String, required: true },
+    shift_id: { type: String, required: true },
+    startShift: { type: String, required: true },
+    finishShift: { type: String, required: false },
+    shiftDuration: { type: Number, required: true },
+    breaks: { type: Number, required: true },
+    correct: { type: String},
+    monthHours: { type: Number, required: true },
+})
+
+export const ShiftModel = mongoose.model('Shift', shiftSchema, 'shift_collection')

@@ -13,8 +13,8 @@ export interface AppConfig {
     jwt:{
         secret:string,
         exp:string|number
-    }
-
+    },
+    logLevel:string
 }
 dotenv.config();
 

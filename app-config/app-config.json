@@ -18,6 +18,9 @@
     "GET/work/":["manager", "hr"]
   },
   "checkIdRoutes": [
-
-  ]
+    "POST/work/start",
+    "PATCH/work/finish",
+    "PATCH/work/break"
+  ],
+  "logLevel": "info"
 }
