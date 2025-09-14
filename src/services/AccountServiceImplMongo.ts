@@ -19,7 +19,7 @@ import {archiveShifts} from "./archiveService.js";
 export class AccountServiceImplMongo implements AccountService {
 
     async hireEmployee(employee: Employee, actorId: string, actorRoles: Roles[]): Promise<Employee> {
-        const exist = await EmployeeModel.findById(employee._id).lean<Employee>();
+        const exist = await EmployeeModel.findById(employee._id);
         if (exist) {
             await auditLog({
                 actorId: actorId,
@@ -29,9 +29,9 @@ export class AccountServiceImplMongo implements AccountService {
                 status: 'DENIED',
                 textError: "Employee already exists"
             });
-            throw new HttpError(409, "Employee already exists")
+            throw new HttpError(409, `Employee with ${employee._id} already exists`)
         }
-        const firedBefore = await FiredEmployeeModel.findById(employee._id).lean<SavedFiredEmployee>();
+        const firedBefore = await FiredEmployeeModel.findById(employee._id);
         if (firedBefore) {
             await auditLog({
                 actorId: actorId,
@@ -46,17 +46,19 @@ export class AccountServiceImplMongo implements AccountService {
 
 
         const saved = await new EmployeeModel(employee).save();
+        if (!saved) throw new HttpError(500, "Failed to save employee");
+        return saved as Employee;
 
-        const emp = await EmployeeModel.findById(saved._id).lean<Employee>();
-        if (!emp) throw new HttpError(500, "Failed to create employee");
-        await auditLog({
-            actorId: actorId,
-            actorRoles: actorRoles,
-            action: 'HIRE',
-            targetId: employee._id,
-            status: 'SUCCESS'
-        })
-        return emp;
+        // const emp = await EmployeeModel.findById(saved._id);
+        // if (!emp) throw new HttpError(500, "Failed to create employee");
+        // await auditLog({
+        //     actorId: actorId,
+        //     actorRoles: actorRoles,
+        //     action: 'HIRE',
+        //     targetId: employee._id,
+        //     status: 'SUCCESS'
+        // })
+        // return emp as Employee;
     }
 
     async fireEmployee(id: string, actorId: string, actorRoles: Roles[]): Promise<SavedFiredEmployee> {
@@ -129,12 +131,12 @@ export class AccountServiceImplMongo implements AccountService {
     }
 
     async getEmployeeById(id: string): Promise<Employee> {
-        const res = await EmployeeModel.findById(id) as Employee;
+        const res = await EmployeeModel.findById(id).exec();
         if (!res) {
             logger.error(`${new Date().toISOString()} => Employee with id ${id} not found`);
             throw new HttpError(404, `Employee with id ${id} not found`);
         }
-        return res;
+        return res as Employee;
     }
 
 
