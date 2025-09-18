@@ -1,13 +1,26 @@
 {
     "port": 3555,
-    "skipRoutes": [],
+    "skipRoutes": [
+        "POST/crew", "POST/work"
+    ],
     "pathRoles": {
         "POST/crew/hireEmployee": ["hr"],
         "DELETE/crew/fireEmployee": ["hr"],
-        "GET/crew/employee": ["crew", "manager", "hr"],
+        "GET/crew/employee": ["manager", "hr"],
         "GET/crew/employees": ["manager", "hr"],
         "PATCH/crew/updateEmployee": ["manager", "hr"],
-        "PATCH/crew/setRole": ["supervisor"]
+        "PATCH/crew/password": ["manager", "hr"],
+        "PATCH/crew/setRole": ["supervisor"],
+        "POST/work/start": ["crew", "manager"],
+        "PATCH/work/finish": ["crew", "manager"],
+        "PATCH/work/break": ["crew", "manager"],
+        "PATCH/work/correct": ["manager", "hr"],
+        "GET/work/": ["manager", "hr"]
     },
-    "checkIdRoutes": []
+    "checkIdRoutes": [
+        "POST/work/start",
+        "PATCH/work/finish",
+        "PATCH/work/break"
+    ],
+    "logLevel": "error"
 }

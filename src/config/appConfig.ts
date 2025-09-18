@@ -1,7 +1,10 @@
-
-
 import dotenv from "dotenv";
-import appConf from "../../app-config/app-config.json";
+ import appConf from "../../app-config/app-config.json";
+// import {readFileSync} from "node:fs";
+// import path from "node:path";
+//
+// const jsonPath = path.resolve(process.cwd(), "app-config", "app-config.json");
+// const appConf = JSON.parse(readFileSync(jsonPath, "utf-8"));
 
 export interface AppConfig {
     port:number,

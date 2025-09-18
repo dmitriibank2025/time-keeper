@@ -12,16 +12,14 @@ import {
 export const empRouter = express.Router()
 
 
-empRouter.post('/hireEmployee', bodyValidation(EmployeeDtoSchema), controller.hireEmployee);
-
-empRouter.get('/employee', controller.getEmployeeById);
-
 empRouter.get('/employees', controller.getAllEmployees);
+empRouter.post('/hireEmployee', bodyValidation(EmployeeDtoSchema), controller.actorData, controller.hireEmployee);
 
-empRouter.delete('/fireEmployee', controller.fireEmployee);
+empRouter.get('/employee', controller.checkID, controller.getEmployeeById);
+empRouter.patch('/updateEmployee', bodyValidation(ChangeDataDtoSchema),  controller.updateEmployee)
+empRouter.delete('/fireEmployee', controller.checkID, controller.fireEmployee);
 
 empRouter.patch('/password', bodyValidation(ChangePassDtoSchema), controller.changePassword)
-
-empRouter.patch('/updateEmployee', bodyValidation(ChangeDataDtoSchema), controller.updateEmployee)
-
 empRouter.patch('/setRole', bodyValidation(ChangeRolesSchema), controller.setRole)
+
+

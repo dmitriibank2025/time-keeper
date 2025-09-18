@@ -7,6 +7,6 @@ export interface AccountService {
     updateEmployee: (empId:string , employee: EmployeeDto, actorId:string, actorRoles: Roles[]) => Promise<Employee>;
     changePassword:  (empId:string , newPassword: string, actorId:string, actorRoles: Roles[]) => Promise<void>;
     getEmployeeById: (id: string) => Promise<Employee>;
-    getAllEmployees: () => Promise<Employee[]>;
+    getAllEmployees: () => Promise<SavedFiredEmployee[]>;
     setRole: (id:string, newRole:string, actorId:string, actorRoles: Roles[]) => Promise<Employee>;
 }

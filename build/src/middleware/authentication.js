@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { HttpError } from "../errorHandler/HttpError.js";
 import { Roles } from "../utils/appTypes.js";
 import jwt from "jsonwebtoken";
 import { configuration } from "../config/appConfig.js";
@@ -54,8 +55,11 @@ export const authentication = (service) => {
         next();
     };
 };
-// export const skipRoutes = (skipRoutes: string[]) => (req: AuthRequest, res: Response, next: NextFunction) => {
-//     const route = req.method + req.path
-//     if (!skipRoutes.includes(route) && !req.roles) throw new HttpError(401, '')
-//     next();
-// }
+export const skipRoutes = (skipRoutes) => (req, res, next) => {
+    const route = req.method + req.path;
+    if (!skipRoutes.includes(route) && !req.roles) {
+        res.json("No skip route");
+        throw new HttpError(401, '');
+    }
+    next();
+};

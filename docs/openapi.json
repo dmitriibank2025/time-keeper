@@ -1,0 +1,613 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Time control API",
+    "description": "Web API for small business time controlling",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3555",
+      "description": "Development local server"
+    }
+  ],
+  "paths": {
+    "/crew/employees": {
+      "get": {
+        "summary": "Get all employees list",
+        "description": "Full description will be here",
+        "tags": [
+          "Employees"
+        ],
+        "responses": {
+          "200": {
+            "description": "Employee's array",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/employee"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/crew/fireEmployee": {
+      "delete": {
+        "summary": "Fire Employee  (manager/hr)",
+        "description": "Endpoint to fire employee",
+        "tags": [
+          "Employees"
+        ],
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fired employee",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/employee"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Employee not found"
+          }
+        }
+      }
+    },
+    "/crew/hireEmployee": {
+      "post": {
+        "summary": "Hire Employee  (manager/hr)",
+        "description": "Endpoint to hire employee",
+        "tags": [
+          "Employees"
+        ],
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/employee_dto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Hired employee",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/employee_hired"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "409": {
+            "description": "Employee already exists"
+          }
+        }
+      }
+    },
+    "/crew/updateEmployee": {
+      "patch": {
+        "summary": "Update employee profile fields  (manager/hr)",
+        "description": "Endpoint to update employee",
+        "tags": [
+          "Employees"
+        ],
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/employee_update"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated employee",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/employee"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Nothing to update / bad payload"
+          },
+          "404": {
+            "description": "Employee not found"
+          }
+        }
+      }
+    },
+    "/crew/password": {
+      "patch": {
+        "summary": "Set/change employee password  (crew/manager/hr)",
+        "tags": [
+          "Employees"
+        ],
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/change_password"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Password updated"
+          },
+          "404": {
+            "description": "Employee not found"
+          }
+        }
+      }
+    },
+    "/crew/setRole": {
+      "patch": {
+        "summary": "Set roles for an employee (supervisor only!)",
+        "tags": [
+          "Employees"
+        ],
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/update_role"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated employee roles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/employee"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Employee not found"
+          }
+        }
+      }
+    },
+    "/work/start": {
+      "post": {
+        "summary": "Start a shift (employee)",
+        "tags": [
+          "Work"
+        ],
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "table_num"
+                ],
+                "properties": {
+                  "tab_n": {
+                    "type": "string",
+                    "example": "e0e62ecc-d0ea-4c29-a32a-3c74a6da6e20"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Shift started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/shift"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Employee not found"
+          },
+          "409": {
+            "description": "Open shift already exists"
+          }
+        }
+      }
+    },
+    "/work/finish": {
+      "patch": {
+        "summary": "Finish a shift (employee)",
+        "tags": [
+          "Work"
+        ],
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "table_num"
+                ],
+                "properties": {
+                  "tab_n": {
+                    "type": "string",
+                    "example": "e0e62ecc-d0ea-4c29-a32a-3c74a6da6e20"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Shift finished",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/shift"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No open shift"
+          }
+        }
+      }
+    },
+    "/work/break": {
+      "patch": {
+        "summary": "Start or finish a break inside a shift (employee)",
+        "tags": [
+          "Work"
+        ],
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/break"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Break toggled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/shift"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No open shift / invalid mode"
+          }
+        }
+      }
+    },
+    "/work/correct": {
+      "patch": {
+        "summary": "Correct today's shift times (manager/hr)",
+        "tags": [
+          "Work"
+        ],
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/shift_correct"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Shift corrected"
+          },
+          "400": {
+            "description": "Nothing to update / shift not found"
+          }
+        }
+      }
+    },
+    "/work/": {
+      "get": {
+        "summary": "Get work/shift data (manager/hr)",
+        "tags": [
+          "Work"
+        ],
+        "responses": {
+          "200": {
+            "description": "Work/shift info",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "basicAuth": {
+        "type": "http",
+        "scheme": "basic"
+      }
+    },
+    "schemas": {
+      "employee": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "example": "123456789"
+          },
+          "empName": {
+            "type": "string",
+            "example": "John Dou"
+          },
+          "table_num": {
+            "type": "string",
+            "example": "EdfrDA-43434-32"
+          }
+        }
+      },
+      "employee_dto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "123456789"
+          },
+          "firstName": {
+            "type": "string",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Snow"
+          },
+          "password": {
+            "type": "string",
+            "example": "12345678"
+          }
+        }
+      },
+      "employee_hired": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "example": "123456789"
+          },
+          "empName": {
+            "type": "string",
+            "example": "John"
+          },
+          "passHash": {
+            "type": "string",
+            "example": "12345678"
+          },
+          "table_num": {
+            "type": "string",
+            "example": "EdfrDA-43434-32"
+          },
+          "roles": {
+            "type": "array",
+            "example": [
+              "crew"
+            ]
+          },
+          "workTimeList": {
+            "type": "object",
+            "example": []
+          }
+        }
+      },
+      "employee_update": {
+        "type": "object",
+        "properties": {
+          "empId": {
+            "type": "string",
+            "example": "123456789"
+          },
+          "employee": {
+            "type": "object",
+            "example": {
+              "firstName":  "John",
+              "lastName":  "Doe"
+            }
+          }
+        }
+      },
+      "change_password": {
+        "type": "object",
+        "properties": {
+          "empId": {
+            "type": "string",
+            "example": "123456789"
+          },
+          "newPassword": {
+            "type": "string",
+            "example": "12345679"
+          }
+        }
+      },
+      "update_role": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "123456789"
+          },
+          "newRole": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "crew",
+                "manager",
+                "hr",
+                "supervisor"
+              ]
+            },
+            "example": "hr"
+          }
+        }
+      },
+      "work_time": {
+        "type": "object",
+        "properties": {
+          "shift_id": {"type":"string","example":"2025-09-18"},
+          "startShift": {"type":"string","format":"date-time"},
+          "finishShift": {"type":["string", null],"format":"date-time","nullable": true},
+          "shiftDuration": {"type":"number","description":"Duration (hours)"},
+          "breaks": {"type":"number","description":"Break duration (hours or minutes depending on impl)","example":0},
+          "correct": {"type": ["string" , null],"nullable": true, "description":"Who corrected the shift (employee id)"},
+          "monthHours": {"type":"number","example":0}
+        }
+      },
+      "break": {
+        "type": "object",
+        "properties": {
+          "tab_n": {
+            "type": "string",
+            "example": "e0e62ecc-d0ea-4c29-a32a-3c74a6da6e20"
+          },
+          "minutes": {
+            "type": "number",
+            "enum": [
+              15,
+              30
+            ],
+            "example": 15
+          }
+        }
+      },
+      "shift": {
+        "type": "object",
+        "properties": {
+          "tab_n": {
+            "type": "string"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "shift_correct": {
+        "type": "object",
+        "properties": {
+          "tab_n_crew": {
+            "type": "string"
+          },
+          "start": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO string"
+          },
+          "finish": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO string"
+          }
+        }
+      }
+    }
+  }
+}
+

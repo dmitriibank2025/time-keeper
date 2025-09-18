@@ -5,7 +5,9 @@ import { Request, Response } from 'express';
 import {logger} from "../Logger/winston.js";
 
 export const startShift = async (req: AuthRequest, res: Response) => {
+    logger.debug(new Date().toISOString() +  " => Starting shift request...");
     const {tab_n} = req.body;
+    logger.debug(`Tab number: ${tab_n}`);
     const result = await service.startShift(tab_n);
     res.json(result)
 }

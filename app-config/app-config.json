@@ -9,7 +9,7 @@
     "GET/crew/employee":["manager", "hr"],
     "GET/crew/employees":["manager", "hr"],
     "PATCH/crew/updateEmployee":["manager", "hr"],
-    "PATCH/crew/crew/password":["manager", "hr"],
+    "PATCH/crew/password":["manager", "hr"],
     "PATCH/crew/setRole":["supervisor"],
     "POST/work/start":["crew", "manager"],
     "PATCH/work/finish":["crew", "manager"],
@@ -22,5 +22,5 @@
     "PATCH/work/finish",
     "PATCH/work/break"
   ],
-  "logLevel": "info"
+  "logLevel": "error"
 }

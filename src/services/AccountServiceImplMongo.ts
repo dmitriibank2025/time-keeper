@@ -47,18 +47,15 @@ export class AccountServiceImplMongo implements AccountService {
 
         const saved = await new EmployeeModel(employee).save();
         if (!saved) throw new HttpError(500, "Failed to save employee");
+        await auditLog({
+            actorId: actorId,
+            actorRoles: actorRoles,
+            action: 'HIRE',
+            targetId: employee._id,
+            status: 'SUCCESS'
+        })
         return saved as Employee;
 
-        // const emp = await EmployeeModel.findById(saved._id);
-        // if (!emp) throw new HttpError(500, "Failed to create employee");
-        // await auditLog({
-        //     actorId: actorId,
-        //     actorRoles: actorRoles,
-        //     action: 'HIRE',
-        //     targetId: employee._id,
-        //     status: 'SUCCESS'
-        // })
-        // return emp as Employee;
     }
 
     async fireEmployee(id: string, actorId: string, actorRoles: Roles[]): Promise<SavedFiredEmployee> {

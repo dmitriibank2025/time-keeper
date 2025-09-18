@@ -4,7 +4,7 @@ import {EmployeeModel, ShiftModel} from "../model/EmployeeMongooseModel.js";
 import {HttpError} from "../errorHandler/HttpError.js";
 import {logger} from "../Logger/winston.js";
 import {archiveShifts} from "./archiveService.js";
-
+import { startSession } from "mongoose";
 
 export class WorkTimeImpMongo implements WorkTimeService {
 
@@ -173,13 +173,14 @@ export class WorkTimeImpMongo implements WorkTimeService {
         tab_num: string;
         time: string
     }> {
-
+        logger.info('start to processed')
         const currentDate = new Date().toISOString().split('T')[0];
         const currentTime = Date.now();
         const start = new Date(currentTime).toISOString()
 
         const now = new Date();
-        const twoLastMonthes = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const twoLastMonths = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const cutoff = twoLastMonths.toISOString().split("T")[0];
 
         const emp = await EmployeeModel.findOne({table_num: tab_n});
         if (!emp) {
@@ -187,7 +188,7 @@ export class WorkTimeImpMongo implements WorkTimeService {
             throw new HttpError(404, `Employee with table number ${tab_n} not found`);
         }
 
-        const toArchive = (emp.workTimeList ?? []).filter((w: any) => new Date(w.shift_id) < twoLastMonthes);
+        const toArchive = (emp.workTimeList ?? []).filter((w: any) => new Date(w.shift_id) < twoLastMonths);
         if (toArchive.length) {
             try {
                 await archiveShifts(tab_n, toArchive);
@@ -228,18 +229,49 @@ export class WorkTimeImpMongo implements WorkTimeService {
             monthHours: 0
         }
 
-        const res = await EmployeeModel.findOneAndUpdate(
-            {table_num: tab_n},
-            {
-                $push: {workTimeList: newShift},
-                $pull: {workTimeList: {shift_id: {$lt: twoLastMonthes.toISOString().split('T')[0]}}}
-            },
-            {new: true}
-        )
-        if (!res) {
-            logger.error(`${new Date().toISOString()} => Employee with table number ${tab_n} not found`);
-            throw new HttpError(404, `Employee with table number ${tab_n} not found`);
+        // const res = await EmployeeModel.findOneAndUpdate(
+        //     {table_num: tab_n},
+        //     {
+        //         $push: {workTimeList: newShift},
+        //         $pull: {workTimeList: {shift_id: {$lt: twoLastMonthes.toISOString().split('T')[0]}}}
+        //     },
+        //     {new: true}
+        // )
+        // if (!res) {
+        //     logger.error(`${new Date().toISOString()} => Employee with table number ${tab_n} not found`);
+        //     throw new HttpError(404, `Employee with table number ${tab_n} not found`);
+        // }
+
+        const session = await startSession();
+        try {
+            await session.withTransaction(async () => {
+                if (toArchive.length) {
+                    await EmployeeModel.updateOne(
+                        { table_num: tab_n },
+                        { $pull: { workTimeList: { shift_id: { $lt: cutoff } } } },
+                        { session }
+                    );
+                }
+
+                const res = await EmployeeModel.findOneAndUpdate(
+                    {
+                        table_num: tab_n,
+                        workTimeList: { $not: { $elemMatch: { shift_id: currentDate, finishShift: null } } }
+                    },
+                    { $push: { workTimeList: newShift } },
+                    { new: true, session }
+                );
+
+                if (!res) {
+                    throw new HttpError(409, "Shift already started and not finished yet");
+                }
+
+                logger.info(`Shift for tab num ${tab_n} started`);
+            });
+        } finally {
+            await session.endSession();
         }
+
         return {
             tab_num: emp.table_num,
             time: start
