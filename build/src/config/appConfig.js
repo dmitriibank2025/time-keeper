@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-// import appConf from "../../app-config/app-config.json" with { type: "json" };
+// import appConf from "../../app-config/app-config.json" with {type: "json"};
 import { readFileSync } from "node:fs";
 import path from "node:path";
 const jsonPath = path.resolve(process.cwd(), "app-config", "app-config.json");
